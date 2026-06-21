@@ -4,8 +4,6 @@ Classifies results by severity and prints them as a colored console
 report, plus an aggregate summary suitable for a CI pipeline.
 """
 
-from .analyzer import classify
-
 COLOR_RED = "\033[91m"
 COLOR_YELLOW = "\033[93m"
 COLOR_GREEN = "\033[92m"
