@@ -1,0 +1,8 @@
+# One host/IP/CIDR per line. Lines starting with # are ignored.
+#
+# Single hosts:
+example.com
+github.com
+#
+# CIDR range for your local network (adjust to your real segment):
+# 192.168.1.0/28

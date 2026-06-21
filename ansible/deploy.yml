@@ -1,0 +1,117 @@
+---
+# deploy.yml
+# Deploys ssl-cert-scanner to a Debian/Ubuntu host as:
+#   1. A long-running REST API (systemd service, uvicorn)
+#   2. A scheduled scan job (systemd timer, twice a day by default)
+#
+# This is the kind of automation a Certificate Management Platform
+# team would actually run in production: the tool isn't useful sitting
+# on a laptop, it's useful running unattended against real
+# infrastructure on a schedule, with results available over an API.
+#
+# Usage:
+#   ansible-playbook -i inventory.ini deploy.yml
+#   ansible-playbook -i inventory.ini deploy.yml --extra-vars "repo_url=https://github.com/you/ssl-cert-scanner.git"
+
+- name: Deploy ssl-cert-scanner
+  hosts: cert_scanners
+  become: true
+
+  vars:
+    app_user: certscanner
+    app_dir: /opt/ssl-cert-scanner
+    repo_url: "https://github.com/<your-username>/ssl-cert-scanner.git"
+    repo_version: main
+    scan_targets_file: "{{ app_dir }}/examples/targets.txt"
+    scan_schedule: "*-*-* 06,18:00:00"  # twice a day, 06:00 and 18:00
+
+  tasks:
+    - name: Install system dependencies
+      apt:
+        name:
+          - python3
+          - python3-venv
+          - python3-pip
+          - git
+        state: present
+        update_cache: true
+
+    - name: Create dedicated service user
+      user:
+        name: "{{ app_user }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    - name: Clone or update the repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: "{{ repo_version }}"
+      become_user: "{{ app_user }}"
+
+    - name: Create virtualenv and install core + API dependencies
+      pip:
+        requirements: "{{ item }}"
+        virtualenv: "{{ app_dir }}/.venv"
+        virtualenv_command: python3 -m venv
+      loop:
+        - "{{ app_dir }}/requirements.txt"
+        - "{{ app_dir }}/requirements-api.txt"
+      become_user: "{{ app_user }}"
+
+    - name: Create log directory
+      file:
+        path: /var/log/ssl-cert-scanner
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+
+    - name: Deploy systemd unit for the API
+      template:
+        src: templates/ssl-cert-scanner-api.service.j2
+        dest: /etc/systemd/system/ssl-cert-scanner-api.service
+        mode: "0644"
+      notify: restart api
+
+    - name: Deploy systemd unit for the scheduled scan
+      template:
+        src: templates/ssl-cert-scanner-scan.service.j2
+        dest: /etc/systemd/system/ssl-cert-scanner-scan.service
+        mode: "0644"
+      notify: reload systemd
+
+    - name: Deploy systemd timer for the scheduled scan
+      template:
+        src: templates/ssl-cert-scanner-scan.timer.j2
+        dest: /etc/systemd/system/ssl-cert-scanner-scan.timer
+        mode: "0644"
+      notify: enable scan timer
+
+  handlers:
+    - name: reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: restart api
+      systemd:
+        daemon_reload: true
+        name: ssl-cert-scanner-api
+        enabled: true
+        state: restarted
+
+    - name: enable scan timer
+      systemd:
+        daemon_reload: true
+        name: ssl-cert-scanner-scan.timer
+        enabled: true
+        state: started

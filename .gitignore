@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+report.json
+report.csv
+.pytest_cache/
+.ruff_cache/
+data/
+*.retry

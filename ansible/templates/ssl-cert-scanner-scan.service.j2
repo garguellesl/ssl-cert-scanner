@@ -1,0 +1,14 @@
+[Unit]
+Description=Run ssl-cert-scanner scheduled scan
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User={{ app_user }}
+WorkingDirectory={{ app_dir }}
+ExecStartPre=/bin/mkdir -p /var/log/ssl-cert-scanner
+ExecStart={{ app_dir }}/.venv/bin/python -m ssl_cert_scanner \
+  --targets {{ scan_targets_file }} \
+  --json /var/log/ssl-cert-scanner/last-scan.json \
+  --fail-on-critical
