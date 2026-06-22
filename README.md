@@ -48,7 +48,7 @@ Ships as three things, not just a script:
 ## Installation
 
 ```bash
-git clone <your-repo>
+git clone <https://github.com/garguellesl/ssl-cert-scanner.git>
 cd ssl-cert-scanner
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -114,7 +114,7 @@ See [`api/main.py`](api/main.py) for the full endpoint list.
 ```bash
 cd ansible
 ansible-playbook -i inventory.ini deploy.yml \
-  --extra-vars "repo_url=https://github.com/<your-username>/ssl-cert-scanner.git"
+  --extra-vars "https://github.com/garguellesl/ssl-cert-scanner.git"
 ```
 
 This installs the scanner on the target host(s) and sets up:
