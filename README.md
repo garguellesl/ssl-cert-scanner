@@ -86,7 +86,7 @@ Total: 4 | Expired: 1 | Critical: 1 | Warning: 1 | OK: 1
 ## REST API
 
 ```bash
-pip install -r requirements-api.txt
+pip install -r requirements.txt -r requirements-api.txt
 uvicorn api.main:app --reload
 ```
 
@@ -128,14 +128,14 @@ This installs the scanner on the target host(s) and sets up:
 ## Tests
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements.txt -r requirements-dev.txt
 
 # Core analyzer tests (no external dependencies, run anywhere)
-pytest tests/test_analyzer.py -v
+python -m pytest tests/test_analyzer.py -v
 
 # API tests (require requirements-api.txt to be installed too)
 pip install -r requirements-api.txt
-pytest tests/test_api.py -v
+python -m pytest tests/test_api.py -v
 ```
 
 The analyzer tests generate self-signed certificates **in memory**
@@ -156,26 +156,26 @@ Every push and pull request runs through GitHub Actions
 
 ```
 ssl-cert-scanner/
-├── ssl_cert_scanner/
-│   ├── scanner.py      # network discovery + TLS handshake
-│   ├── analyzer.py     # x.509 parsing and risk rules
-│   ├── alerts.py        # console report by severity
-│   ├── exporters.py     # JSON / CSV
-│   └── cli.py            # command-line entry point
-├── api/
-│   ├── main.py            # FastAPI app
-│   ├── schemas.py         # request/response models
-│   └── storage.py         # SQLite persistence for scans/results
-├── ansible/
-│   ├── deploy.yml          # playbook
-│   ├── inventory.ini
-│   └── templates/           # systemd unit files
-├── .github/workflows/ci.yml
-├── tests/
-│   ├── test_analyzer.py    # offline tests with in-memory certificates
-│   └── test_api.py          # API tests via FastAPI TestClient
-├── examples/targets.txt
-└── docs/architecture.svg
+|-- ssl_cert_scanner/
+|   |-- scanner.py      # network discovery + TLS handshake
+|   |-- analyzer.py     # x.509 parsing and risk rules
+|   |-- alerts.py       # console report by severity
+|   |-- exporters.py    # JSON / CSV
+|   `-- cli.py          # command-line entry point
+|-- api/
+|   |-- main.py         # FastAPI app
+|   |-- schemas.py      # request/response models
+|   `-- storage.py      # SQLite persistence for scans/results
+|-- ansible/
+|   |-- deploy.yml      # playbook
+|   |-- inventory.ini
+|   `-- templates/      # systemd unit files
+|-- .github/workflows/ci.yml
+|-- tests/
+|   |-- test_analyzer.py # offline tests with in-memory certificates
+|   `-- test_api.py      # API tests via FastAPI TestClient
+|-- examples/targets.txt
+`-- docs/architecture.svg
 ```
 
 ## Possible extensions

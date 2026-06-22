@@ -8,4 +8,5 @@ report.csv
 .pytest_cache/
 .ruff_cache/
 data/
+*.db
 *.retry
